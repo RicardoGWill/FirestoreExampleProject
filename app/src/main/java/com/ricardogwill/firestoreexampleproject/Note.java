@@ -1,7 +1,9 @@
 package com.ricardogwill.firestoreexampleproject;
 
+import com.google.firebase.firestore.Exclude;
+
 public class Note {
-    private String title, description;
+    private String documentID, title, description;
 
     public Note() {
         // This public no-argument / no-parameter constructor is needed so the app won't crash.
@@ -14,6 +16,15 @@ public class Note {
         this.description = description;
     }
 
+    @Exclude  // "Exclude" makes it so that it doesn't show up in my document.  (Yoku wakannnai kedo.)
+    public String getDocumentID() {
+        return documentID;
+    }
+
+    public void setDocumentID(String documentID) {
+        this.documentID = documentID;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -21,4 +32,6 @@ public class Note {
     public String getDescription() {
         return description;
     }
+
+
 }
