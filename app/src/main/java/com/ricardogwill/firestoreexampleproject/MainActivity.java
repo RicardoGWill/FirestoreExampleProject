@@ -70,8 +70,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 // This "if" statement is nearly the same as in the "loadNote" method below.
                 if (documentSnapshot.exists()) {
-                    String title = documentSnapshot.getString(KEY_TITLE);
-                    String description = documentSnapshot.getString(KEY_DESCRIPTION);
+                    Note note = documentSnapshot.toObject(Note.class);
+
+                    String title = note.getTitle();
+                    String description = note.getDescription();
 
                     dataTextView.setText("Title: " + title + "\n" + "Description: " + description);
                 } else {
@@ -86,9 +88,13 @@ public class MainActivity extends AppCompatActivity {
         String titleString = titleEditText.getText().toString();
         String descriptionString = descriptionEditText.getText().toString();
 
-        Map<String, Object> note = new HashMap<>();
-        note.put(KEY_TITLE, titleString);
-        note.put(KEY_DESCRIPTION, descriptionString);
+        // Note: The following 3 lines were necessary UNTIL the "Note" Class was created.
+        // Note cont'd: Instead, the line starting with "Note note = new Note()" replaces them.
+        // Map<String, Object> note = new HashMap<>();
+        // note.put(KEY_TITLE, titleString);
+        // note.put(KEY_DESCRIPTION, descriptionString);
+
+        Note note = new Note(titleString, descriptionString);
 
         documentReference.set(note)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -108,30 +114,31 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-//    public void loadNote(View view) {
-//        documentReference.get()
-//                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-//                    @Override
-//                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-//                        if (documentSnapshot.exists()) {
-//                            String title = documentSnapshot.getString(KEY_TITLE);
-//                            String description = documentSnapshot.getString(KEY_DESCRIPTION);
-//
-//                            // Map<String, Object> note = documentSnapshot.getData();
-//                            dataTextView.setText("Title: " + title + "\n" + "Description: " + description);
-//                        } else {
-//                            Toast.makeText(MainActivity.this, "Document does not exist.", Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        Toast.makeText(MainActivity.this, "Error!", Toast.LENGTH_SHORT).show();
-//                        Log.d(TAG, e.toString());
-//                    }
-//                });
-//    }
+    public void loadNote(View view) {
+        documentReference.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()) {
+                            Note note = documentSnapshot.toObject(Note.class);
+
+                            String title = note.getTitle();
+                            String description = note.getDescription();
+
+                            dataTextView.setText("Title: " + title + "\n" + "Description: " + description);
+                        } else {
+                            Toast.makeText(MainActivity.this, "Document does not exist.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, "Error!", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, e.toString());
+                    }
+                });
+    }
 
     public void deleteDescription(View view) {
         // Note: The following 3 lines of commented-out code can be replaced by the 1 actual line of code below it.
