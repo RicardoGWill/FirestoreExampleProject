@@ -17,6 +17,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.SetOptions;
@@ -73,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
                     String description = documentSnapshot.getString(KEY_DESCRIPTION);
 
                     dataTextView.setText("Title: " + title + "\n" + "Description: " + description);
+                } else {
+                    dataTextView.setText("");
                 }
             }
         });
@@ -129,6 +132,21 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //                });
 //    }
+
+    public void deleteDescription(View view) {
+        // Note: The following 3 lines of commented-out code can be replaced by the 1 actual line of code below it.
+        // Map<String, Object> note = new HashMap<>();
+        // note.put(KEY_DESCRIPTION, FieldValue.delete());
+        // documentReference.update(note);
+
+        documentReference.update(KEY_DESCRIPTION, FieldValue.delete());
+        // It is possible to put an OnSuccessListener and OnFailureListener after the above line (before the semicolon).
+    }
+
+    public void deleteNote(View view) {
+        documentReference.delete();
+        // It is possible to put an OnSuccessListener and OnFailureListener after the above line (before the semicolon).
+    }
 
     public void updateDescription(View view) {
         String description = descriptionEditText.getText().toString();
