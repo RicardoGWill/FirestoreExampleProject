@@ -21,6 +21,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String KEY_TITLE = "title";
     public static final String KEY_DESCRIPTION = "description";
 
-    private EditText titleEditText, descriptionEditText;
+    private EditText titleEditText, descriptionEditText, priorityEditText;
     private TextView dataTextView;
 
     private FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
         titleEditText = findViewById(R.id.title_editText);
         descriptionEditText = findViewById(R.id.description_editText);
+        priorityEditText = findViewById(R.id.priority_editText);
         dataTextView = findViewById(R.id.data_textView);
 
     }
@@ -80,8 +82,10 @@ public class MainActivity extends AppCompatActivity {
                     String documentID = note.getDocumentID();
                     String title = note.getTitle();
                     String description = note.getDescription();
+                    int priority = note.getPriority();
 
-                    data += "ID: " + documentID + "\nTitle: " + title + "\nDescription: " + description + "\n\n";
+                    data += "ID: " + documentID + "\nTitle: " + title
+                            + "\nDescription: " + description + "\nPriority: " + priority + "\n\n";
                 }
 
                 dataTextView.setText(data);
@@ -94,7 +98,13 @@ public class MainActivity extends AppCompatActivity {
         String titleString = titleEditText.getText().toString();
         String descriptionString = descriptionEditText.getText().toString();
 
-        Note note = new Note(titleString, descriptionString);
+        if (priorityEditText.length() == 0) {
+            priorityEditText.setText("0");
+        }
+
+        int priorityInt = Integer.parseInt(priorityEditText.getText().toString());
+
+        Note note = new Note(titleString, descriptionString, priorityInt);
 
         collectionReference.add(note);  // It is possible to add an OnSuccessListener and OnFailureListener before the semicolon.
 
@@ -102,7 +112,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadNotes(View view) {
-        collectionReference.get()
+        collectionReference.whereGreaterThanOrEqualTo("priority", 2)
+                // ".orderBy" shows the notes (by "priority", then by "title").
+                // The "Load Notes" button doesn't work with two different orders (e.g. "orderBy("priority").orderBy("title")", so after I press it, I must go to Logcat, see the message, and go to the link to set up a "Composite" Index:
+                // 09-24 16:51:25.524 4162-4162/com.ricardogwill.firestoreexampleproject D/MainActivity: com.google.firebase.firestore.FirebaseFirestoreException: FAILED_PRECONDITION: The query requires an index. You can create it here:
+                // https://console.firebase.google.com/project/firestoreexampleproject-c2f51/database/firestore/indexes?create_index=EghOb3RlYm9vaxoMCghwcmlvcml0eRACGgkKBXRpdGxlEAIaDAoIX19uYW1lX18QAg
+                .orderBy("priority").orderBy("title")
+//                .limit(3) // ".limit" limits the number of results to the number defined.
+                .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -117,11 +134,19 @@ public class MainActivity extends AppCompatActivity {
                             String documentID = note.getDocumentID();
                             String title = note.getTitle();
                             String description = note.getDescription();
+                            int priority = note.getPriority();
 
-                            data += "ID: " + documentID + "\nTitle: " + title + "\nDescription: " + description + "\n\n";
+                            data += "ID: " + documentID + "\nTitle: " + title
+                                    + "\nDescription: " + description + "\nPriority: " + priority + "\n\n";
                         }
 
                         dataTextView.setText(data);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG, e.toString());
                     }
                 });
     }
