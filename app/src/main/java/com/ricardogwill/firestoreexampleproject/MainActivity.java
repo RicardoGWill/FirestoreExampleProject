@@ -12,13 +12,18 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 // This project is based off the tutorial here: https://www.youtube.com/watch?v=MILE4PVx1kE&index=2&list=PLrnPJCHvNZuDrSqu-dKdDi3Q6nM-VUyxD
 public class MainActivity extends AppCompatActivity {
@@ -41,6 +46,38 @@ public class MainActivity extends AppCompatActivity {
         priorityEditText = findViewById(R.id.priority_editText);
         dataTextView = findViewById(R.id.data_textView);
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        collectionReference.addSnapshotListener(this, new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    return;
+                }
+
+                for (DocumentChange documentChange : queryDocumentSnapshots.getDocumentChanges()) {
+                    DocumentSnapshot documentSnapshot = documentChange.getDocument();
+                    String id = documentSnapshot.getId();
+                    int oldIndex  = documentChange.getOldIndex();
+                    int newIndex = documentChange.getNewIndex();
+
+                    switch (documentChange.getType()) {
+                        case ADDED:
+                            dataTextView.append("\nAdded: " + id + "\nOld Index: " + oldIndex + "\nNew Index: " + newIndex);
+                            break;
+                        case MODIFIED:
+                            dataTextView.append("\nModified: " + id + "\nOld Index: " + oldIndex + "\nNew Index: " + newIndex);
+                            break;
+                        case REMOVED:
+                            dataTextView.append("\nRemoved: " + id + "\nOld Index: " + oldIndex + "\nNew Index: " + newIndex);
+                            break;
+                    }
+                }
+            }
+        });
     }
 
     // "OnClick" XML is used instead of an OnClickListener.
